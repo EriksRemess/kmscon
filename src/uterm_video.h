@@ -158,6 +158,7 @@ void uterm_display_unregister_cb(struct uterm_display *disp,
 struct uterm_mode *uterm_display_get_modes(struct uterm_display *disp);
 struct uterm_mode *uterm_display_get_current(struct uterm_display *disp);
 struct uterm_mode *uterm_display_get_default(struct uterm_display *disp);
+struct uterm_mode *uterm_display_get_original(struct uterm_display *disp);
 
 int uterm_display_get_state(struct uterm_display *disp);
 int uterm_display_activate(struct uterm_display *disp, struct uterm_mode *mode);

@@ -371,6 +371,15 @@ struct uterm_mode *uterm_display_get_default(struct uterm_display *disp)
 }
 
 SHL_EXPORT
+struct uterm_mode *uterm_display_get_original(struct uterm_display *disp)
+{
+	if (!disp)
+		return NULL;
+
+	return disp->original_mode;
+}
+
+SHL_EXPORT
 int uterm_display_get_state(struct uterm_display *disp)
 {
 	if (!disp)

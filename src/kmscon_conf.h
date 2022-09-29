@@ -151,6 +151,8 @@ struct kmscon_conf_t {
 	char *render_engine;
 	/* orientation/rotation of output */
 	char *rotate;
+	/* use current KMS video mode to avoid modesetting */
+	bool use_original_mode;
 
 	/* Font Options */
 	/* font engine */

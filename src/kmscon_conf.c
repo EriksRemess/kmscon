@@ -147,6 +147,7 @@ static void print_help()
 		"\t    --render-engine <eng>   [-]      Console renderer\n"
 		"\t    --render-timing         [off]    Print renderer timing information\n"
 		"\t    --rotate <orientation>  [normal] normal, right, inverted, left\n"
+		"\t    --use-original-mode     [on]    Use original KMS video mode\n"
 		"\n"
 		"Font Options:\n"
 		"\t    --font-engine <engine>  [pango]\n"
@@ -742,6 +743,7 @@ int kmscon_conf_new(struct conf_ctx **out)
 		CONF_OPTION(0, 0, "gpus", &conf_gpus, NULL, NULL, NULL, &conf->gpus, KMSCON_GPU_ALL),
 		CONF_OPTION_STRING(0, "render-engine", &conf->render_engine, NULL),
 		CONF_OPTION_STRING(0, "rotate", &conf->rotate, "normal"),
+		CONF_OPTION_BOOL(0, "use-original-mode", &conf->use_original_mode, true),
 
 		/* Font Options */
 		CONF_OPTION_STRING(0, "font-engine", &conf->font_engine, "pango"),

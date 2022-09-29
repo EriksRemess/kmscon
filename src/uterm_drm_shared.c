@@ -599,6 +599,10 @@ static void bind_display(struct uterm_video *video, drmModeRes *res,
 		return;
 	ddrm = disp->data;
 
+	drmModeEncoder *enc = drmModeGetEncoder(vdrm->fd, conn->encoder_id);
+	drmModeCrtc *current_crtc = drmModeGetCrtc(vdrm->fd, enc->crtc_id);
+	drmModeFreeEncoder(enc);
+
 	for (i = 0; i < conn->count_modes; ++i) {
 		ret = mode_new(&mode, &uterm_drm_mode_ops);
 		if (ret)
@@ -615,6 +619,10 @@ static void bind_display(struct uterm_video *video, drmModeRes *res,
 		/* TODO: more sophisticated default-mode selection */
 		if (!disp->default_mode)
 			disp->default_mode = mode;
+
+		/* Save the original KMS mode for later use */
+		if (memcmp(&conn->modes[i], &current_crtc->mode, sizeof(conn->modes[i])) == 0)
+		 	disp->original_mode = mode;
 
 		uterm_mode_unref(mode);
 	}
