@@ -119,6 +119,7 @@ struct uterm_display {
 	struct shl_dlist modes;
 	struct uterm_mode *default_mode;
 	struct uterm_mode *current_mode;
+	struct uterm_mode *original_mode;
 	int dpms;
 
 	bool vblank_scheduled;

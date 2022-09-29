@@ -482,6 +482,13 @@
                 only be used to debug render engines. (default: off)</para>
         </listitem>
       </varlistentry>
+
+      <varlistentry>
+        <term><option>--use-original-mode</option></term>
+        <listitem>
+          <para>Use original KMS mode to prevent modesetting. (default: on)</para>
+        </listitem>
+      </varlistentry>
     </variablelist>
 
     <para>Font Options:</para>
