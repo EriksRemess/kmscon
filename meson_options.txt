@@ -7,7 +7,9 @@ option('docs', type: 'feature', value: 'auto',
 
 # multi-seat
 option('multi_seat', type: 'feature', value: 'auto',
-  description: 'Multi-seat support with systemd')
+  description: 'Multi-seat support with systemd or elogind')
+option('elogind', type: 'feature', value: 'disabled',
+  description: 'Prefer elogind over systemd')
 
 # video backends
 option('video_fbdev', type: 'feature', value: 'auto',
