@@ -65,7 +65,12 @@ python = find_program('python3')
 require_glesv2 = get_option('video_drm3d').enabled() or get_option('renderer_gltex').enabled()
 require_libdrm = get_option('video_drm2d').enabled() or get_option('video_drm3d').enabled()
 
-libsystemd_deps = dependency('libsystemd', disabler: true, required: get_option('multi_seat'))
+if get_option('elogind').enabled()
+	multi_seat_dep = 'libelogind'
+else
+	multi_seat_dep = 'libsystemd'
+endif
+libsystemd_deps = dependency(multi_seat_dep, disabler: true, required: get_option('multi_seat'))
 libdrm_deps = dependency('libdrm', disabler: true, required: require_libdrm)
 gbm_deps = dependency('gbm', disabler: true, required: get_option('video_drm3d'))
 egl_deps = dependency('egl', disabler: true, required: get_option('video_drm3d'))
