@@ -149,6 +149,13 @@ static void print_help()
 		"\t    --render-timing         [off]    Print renderer timing information\n"
 		"\t    --rotate <orientation>  [normal] normal, right, inverted, left\n"
 		"\t    --use-original-mode     [on]    Use original KMS video mode\n"
+		"\t    --desired-width <pixels>  [0]\n"
+		"\t    --desired-height <pixels> [0]     Set the desired width/height of\n"
+		"\t                                      the output. If the desired mode\n"
+		"\t                                      is not available or encounters an\n"
+		"\t                                      error, a default mode will be\n"
+		"\t                                      used. See the man page for\n"
+		"\t                                      additional details.\n"
 		"\n"
 		"Font Options:\n"
 		"\t    --font-engine <engine>  [pango]\n"
@@ -745,6 +752,8 @@ int kmscon_conf_new(struct conf_ctx **out)
 		CONF_OPTION_STRING(0, "render-engine", &conf->render_engine, NULL),
 		CONF_OPTION_STRING(0, "rotate", &conf->rotate, "normal"),
 		CONF_OPTION_BOOL(0, "use-original-mode", &conf->use_original_mode, true),
+		CONF_OPTION_UINT(0, "desired-width", &conf->desired_width, 0),
+		CONF_OPTION_UINT(0, "desired-height", &conf->desired_height, 0),
 
 		/* Font Options */
 		CONF_OPTION_STRING(0, "font-engine", &conf->font_engine, "pango"),

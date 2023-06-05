@@ -435,6 +435,8 @@ void dbus_gyro_query_timer_cb(struct ev_timer *timer, uint64_t num, void *data)
 	dbus_connection_read_write_dispatch (dbus_connection, 1);
 }
 
+static int font_set(struct kmscon_terminal *term);
+
 static void do_redraw_screen(struct screen *scr)
 {
 	int ret;
@@ -457,6 +459,14 @@ static void do_redraw_screen(struct screen *scr)
 	handle_mouse_drawing(scr->term->mouse, scr->txt);
 
 	ret = uterm_display_swap(scr->disp, false);
+
+	if (ret == -EAGAIN) {
+		uterm_display_deactivate(scr->disp);
+		uterm_display_activate(scr->disp, NULL);
+		font_set(scr->term);
+		ret = uterm_display_swap(scr->disp, false);
+	}
+
 	if (ret) {
 		log_warning("cannot swap display %p", scr->disp);
 		return;
