@@ -147,6 +147,9 @@ struct kmscon_conf_t {
 	char *render_engine;
 	/* use current KMS video mode to avoid modesetting */
 	bool use_original_mode;
+	/* screen resolution */
+	unsigned int desired_width;
+	unsigned int desired_height;
 
 	/* Font Options */
 	/* font engine */
