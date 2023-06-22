@@ -169,6 +169,8 @@ static void activate_display(struct kmscon_display *d)
 		else
 			ret = uterm_display_activate(d->disp, NULL);
 
+		if (ret == -EAGAIN)
+			ret = uterm_display_activate(d->disp, NULL);
 		if (ret)
 			return;
 
