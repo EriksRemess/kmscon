@@ -391,9 +391,22 @@ font-name=Ubuntu Mono
       </varlistentry>
 
       <varlistentry>
+<<<<<<< HEAD
         <term><option>rotate</option></term>
         <listitem>
           <para>Orientation of output to use. (default: normal)</para>
+=======
+        <term><option>use-original-mode</option></term>
+        <listitem>
+          <para>Use the original KMS video mode. (default: on)</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>mode</option></term>
+        <listitem>
+          <para>Set the resolution to {width}x{height}</para>
+>>>>>>> ba13eb8 (Add a man-page for the kmscon.conf file.)
         </listitem>
       </varlistentry>
 
