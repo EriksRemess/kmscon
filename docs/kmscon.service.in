@@ -1,9 +1,12 @@
 [Unit]
 Description=KMS System Console
 Documentation=man:kmscon(1)
+After=plymouth-quit-wait.service
+After=systemd-user-sessions.service
+After=rc-local.service
 
 [Service]
-ExecStart=@bindir@/kmscon -l /bin/login
+ExecStart=@bindir@/kmscon --login -- /sbin/agetty -o '-p -- \\u' --noclear -- -
 
 [Install]
 WantedBy=multi-user.target
