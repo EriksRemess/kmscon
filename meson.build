@@ -7,7 +7,7 @@ project('kmscon', 'c',
   license: 'MIT',
   # meson 0.58: f-string
   # meson 0.62: dependency libdl
-  meson_version: '>=0.62.0',
+  meson_version: '>=1.1',
   default_options: [
     'warning_level=1',
     'werror=true',
@@ -129,7 +129,7 @@ config.set10('BUILD_BACKSPACE_SENDS_DELETE', get_option('backspace_sends_delete'
 # Make all files include "config.h" by default. This shouldn't cause any
 # problems and we cannot forget to include it anymore.
 config_h = configure_file(configuration: config, output: 'config.h')
-abs_config_h = meson.current_build_dir() / '@0@'.format(config_h)
+abs_config_h = meson.current_build_dir() / '@0@'.format('config.h')
 add_project_arguments('-include', abs_config_h, language: 'c')
 
 #

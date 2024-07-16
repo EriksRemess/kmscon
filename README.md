@@ -36,7 +36,7 @@ Released tarballs can be found at: https://github.com/Aetf/kmscon/releases
 
 To compile the kmscon binary, run the standard meson commands:
 ```bash
-meson builddir/
+meson setup builddir/
 ````
 
 By default this will install into `/usr/local`, you can change your prefix with `--prefix=/usr`
@@ -44,7 +44,7 @@ By default this will install into `/usr/local`, you can change your prefix with 
 
 Then build and install. Note that this requires ninja.
 ```bash
-meson -C builddir/ install
+meson install -C builddir/
 ```
 
 The following meson options are available.
