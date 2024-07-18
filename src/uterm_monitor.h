@@ -47,6 +47,7 @@ enum uterm_monitor_event_type {
 	UTERM_MONITOR_NEW_DEV,
 	UTERM_MONITOR_FREE_DEV,
 	UTERM_MONITOR_HOTPLUG_DEV,
+	UTERM_MONITOR_UPDATE_SESSIONS,
 };
 
 enum uterm_monitor_dev_type {

@@ -501,6 +501,8 @@ static void app_monitor_event(struct uterm_monitor *mon,
 			break;
 		}
 		break;
+	case UTERM_MONITOR_UPDATE_SESSIONS:
+		break;
 	}
 }
 
