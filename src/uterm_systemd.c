@@ -46,7 +46,7 @@ struct uterm_sd {
 	sd_login_monitor *mon;
 };
 
-int uterm_sd_new(struct uterm_sd **out)
+int uterm_sd_new(struct uterm_sd **out, const char* event_type)
 {
 	int ret;
 	struct uterm_sd *sd;
@@ -71,7 +71,7 @@ int uterm_sd_new(struct uterm_sd **out)
 		return -ENOMEM;
 	memset(sd, 0, sizeof(*sd));
 
-	ret = sd_login_monitor_new("seat", &sd->mon);
+	ret = sd_login_monitor_new(event_type, &sd->mon);
 	if (ret) {
 		log_err("cannot create systemd login monitor (%d): %s",
 			ret, strerror(-ret));
