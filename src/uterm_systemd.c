@@ -138,7 +138,6 @@ int uterm_sd_get_session_type(int pid, char **type)
 
 	if (!pid)
 		return -EINVAL;
-
 	ret = sd_pid_get_session(pid, &sess_id);
 	if (ret < 0)
 		return -EFAULT;
@@ -147,6 +146,7 @@ int uterm_sd_get_session_type(int pid, char **type)
 	if (ret < 0) {
 		log_warning("cannot read session type information from systemd: %d",
 			    ret);
+		free(sess_id);
 		return -EFAULT;
 	}
 	free(sess_id);
