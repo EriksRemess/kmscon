@@ -130,3 +130,26 @@ int uterm_sd_get_seats(struct uterm_sd *sd, char ***seats)
 	*seats = s;
 	return ret;
 }
+
+int uterm_sd_get_session_type(int pid, char **type)
+{
+	int ret;
+	char *sess_id;
+
+	if (!pid)
+		return -EINVAL;
+
+	ret = sd_pid_get_session(pid, &sess_id);
+	if (ret < 0)
+		return -EFAULT;
+
+	ret = sd_session_get_type(sess_id, type);
+	if (ret < 0) {
+		log_warning("cannot read session type information from systemd: %d",
+			    ret);
+		return -EFAULT;
+	}
+	free(sess_id);
+
+	return ret;
+}

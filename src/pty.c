@@ -228,6 +228,14 @@ int kmscon_pty_get_fd(struct kmscon_pty *pty)
 	return ev_eloop_get_fd(pty->eloop);
 }
 
+int kmscon_pty_get_child(struct kmscon_pty *pty)
+{
+	if (!pty)
+		return -EINVAL;
+
+	return pty->child;
+}
+
 void kmscon_pty_dispatch(struct kmscon_pty *pty)
 {
 	if (!pty)
