@@ -166,7 +166,7 @@ static void monitor_sd_session_event(struct ev_fd *fd,
 			     void *data)
 {
 	struct uterm_monitor *mon = data;
-	
+
 	int ret = check_sd_event(mask);
 	if (ret)
 		return;
@@ -320,16 +320,14 @@ static void monitor_update_sessions(struct uterm_monitor *mon)
 	shl_dlist_for_each_safe(iter, tmp, &mon->seats) {
 		seat = shl_dlist_entry(iter, struct uterm_monitor_seat,
 						list);
-		
+
 		struct uterm_monitor_event ev;
-	
+
 		memset(&ev, 0, sizeof(ev));
 
 		ev.type = UTERM_MONITOR_UPDATE_SESSIONS;
-		ev.seat = seat;
-		ev.seat_name = seat->name;
 		ev.seat_data = seat->data;
-	
+
 		seat->mon->cb(seat->mon, &ev, seat->mon->data);
 	}
 }

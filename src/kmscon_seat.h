@@ -104,6 +104,7 @@ int kmscon_seat_register_session(struct kmscon_seat *seat,
 				 struct kmscon_session **out,
 				 kmscon_session_cb_t cb,
 				 void *data);
+void kmscon_seat_update_sessions(struct kmscon_seat *seat);
 
 void kmscon_session_ref(struct kmscon_session *sess);
 void kmscon_session_unref(struct kmscon_session *sess);
