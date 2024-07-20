@@ -1098,6 +1098,9 @@ void kmscon_seat_update_sessions(struct kmscon_seat *seat)
 	shl_dlist_for_each_safe(iter, tmp, &seat->sessions) {
 		session = shl_dlist_entry(iter, struct kmscon_session,
 						list);
+		if (session == seat->dummy_sess)
+			continue;
+
 		kmscon_session_update_type(session);
 	}
 }
