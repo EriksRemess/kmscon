@@ -133,7 +133,6 @@ typedef void (*uterm_display_cb) (struct uterm_display *disp,
 /* misc */
 
 const char *uterm_dpms_to_name(int dpms);
-bool uterm_video_available(const struct uterm_video_module *mod);
 
 /* display modes interface */
 

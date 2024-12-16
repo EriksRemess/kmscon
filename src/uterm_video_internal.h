@@ -179,23 +179,4 @@ static inline bool video_need_hotplug(const struct uterm_video *video)
 			.display = (disp), \
 			.action = (act), \
 		})
-
-#if defined(BUILD_ENABLE_VIDEO_DRM3D) || defined(BUILD_ENABLE_VIDEO_DRM2D)
-
-#include <xf86drm.h>
-
-static inline bool video_drm_available(void)
-{
-	return drmAvailable();
-}
-
-#else
-
-static inline bool video_drm_available(void)
-{
-	return false;
-}
-
-#endif
-
 #endif /* UTERM_VIDEO_INTERNAL_H */
