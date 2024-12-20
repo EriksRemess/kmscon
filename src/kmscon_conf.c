@@ -560,18 +560,12 @@ static int aftercheck_drm(struct conf_option *opt, int argc, char **argv,
 	struct kmscon_conf_t *conf = KMSCON_CONF_FROM_FIELD(opt->mem, drm);
 
 	/* disable --drm if DRM runtime support is not available */
-	/* TODO: This prevents people from booting without DRM and loading DRM
-	 * drivers during runtime. However, if we remove it, we will be unable
-	 * to automatically fall back to fbdev-mode.
-	 * But with blacklists fbdev-mode is the default so we can run with DRM
-	 * enabled but will still correctly use fbdev devices so we can then
-	 * remove this check. */
-	if (conf->drm) {
-		if (!uterm_video_available(UTERM_VIDEO_DRM3D) &&
-		    !uterm_video_available(UTERM_VIDEO_DRM2D)) {
-			log_info("no DRM runtime support available; disabling --drm");
-			conf->drm = false;
-		}
+	/* drmAvailable() is broken, as it only checks for GPU 0, but with
+	 * with simpledrm, it's often the case that the first gpu ends up being
+	 * GPU 1. So only checks if drm2d or drm3d is available */
+	if (conf->drm && !UTERM_VIDEO_DRM3D && !UTERM_VIDEO_DRM2D) {
+		log_info("no DRM runtime support available; disabling --drm");
+		conf->drm = false;
 	}
 
 	return 0;
