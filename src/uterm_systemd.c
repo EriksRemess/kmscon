@@ -46,7 +46,7 @@ struct uterm_sd {
 	sd_login_monitor *mon;
 };
 
-int uterm_sd_new(struct uterm_sd **out)
+int uterm_sd_new(struct uterm_sd **out, const char* event_type)
 {
 	int ret;
 	struct uterm_sd *sd;
@@ -71,7 +71,7 @@ int uterm_sd_new(struct uterm_sd **out)
 		return -ENOMEM;
 	memset(sd, 0, sizeof(*sd));
 
-	ret = sd_login_monitor_new("seat", &sd->mon);
+	ret = sd_login_monitor_new(event_type, &sd->mon);
 	if (ret) {
 		log_err("cannot create systemd login monitor (%d): %s",
 			ret, strerror(-ret));
@@ -128,5 +128,28 @@ int uterm_sd_get_seats(struct uterm_sd *sd, char ***seats)
 	}
 
 	*seats = s;
+	return ret;
+}
+
+int uterm_sd_get_session_type(int pid, char **type)
+{
+	int ret;
+	char *sess_id;
+
+	if (!pid)
+		return -EINVAL;
+	ret = sd_pid_get_session(pid, &sess_id);
+	if (ret < 0)
+		return -EFAULT;
+
+	ret = sd_session_get_type(sess_id, type);
+	if (ret < 0) {
+		log_warning("cannot read session type information from systemd: %d",
+			    ret);
+		free(sess_id);
+		return -EFAULT;
+	}
+	free(sess_id);
+
 	return ret;
 }

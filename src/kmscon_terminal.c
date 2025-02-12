@@ -587,6 +587,27 @@ static void write_event(struct tsm_vte *vte, const char *u8, size_t len,
 	kmscon_pty_write(term->pty, u8, len);
 }
 
+int kmscon_terminal_get_child_pid(void *term)
+{
+	struct kmscon_terminal *t = term;
+
+	if (!t)
+		return -EINVAL;
+
+	return kmscon_pty_get_child(t->pty);
+}
+
+int kmscon_terminal_set_awake(void *data, bool awake)
+{
+	struct kmscon_terminal *term = data;
+
+	if (!term)
+		return -EINVAL;
+
+	term->awake = awake;
+	return 0;
+}
+
 int kmscon_terminal_register(struct kmscon_session **out,
 			     struct kmscon_seat *seat, unsigned int vtnr)
 {
