@@ -119,6 +119,7 @@ struct uterm_display {
 	struct shl_dlist modes;
 	struct uterm_mode *default_mode;
 	struct uterm_mode *current_mode;
+	struct uterm_mode *original_mode;
 	int dpms;
 
 	bool vblank_scheduled;
@@ -179,23 +180,4 @@ static inline bool video_need_hotplug(const struct uterm_video *video)
 			.display = (disp), \
 			.action = (act), \
 		})
-
-#if defined(BUILD_ENABLE_VIDEO_DRM3D) || defined(BUILD_ENABLE_VIDEO_DRM2D)
-
-#include <xf86drm.h>
-
-static inline bool video_drm_available(void)
-{
-	return drmAvailable();
-}
-
-#else
-
-static inline bool video_drm_available(void)
-{
-	return false;
-}
-
-#endif
-
 #endif /* UTERM_VIDEO_INTERNAL_H */

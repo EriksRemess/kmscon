@@ -51,7 +51,7 @@ static void print_help()
 	 *       |10|    20   |    30   |    40   |    50   |    60   |    70   |    80   |
 	 *      "\t901234567890123456789012345678901234567890123456789012345678901234567890\n"
 	 */
-	fprintf(stderr,
+	fprintf(stdout,
 		"Usage:\n"
 		"\t%1$s [options]\n"
 		"\t%1$s -h [options]\n"
@@ -109,7 +109,7 @@ static void print_help()
 		"\t    --xkb-repeat-delay <msecs> [250]\n"
 		"\t                                 Initial delay for key-repeat in ms\n"
 		"\t    --xkb-repeat-rate <msecs>  [50]\n"
-		"\t                                 Delay between two key-repeats in ms\n"
+		"\t                                 Delay between two key repeats in ms\n"
 		"\n"
 		"Grabs / Keyboard-Shortcuts:\n"
 		"\t    --grab-scroll-up <grab>     [<Shift>Up]\n"
@@ -120,34 +120,35 @@ static void print_help()
 		"\t                                  Shortcut to scroll page up\n"
 		"\t    --grab-page-down <grab>     [<Shift>Next]\n"
 		"\t                                  Shortcut to scroll page down\n"
-		"\t    --grab-zoom-in <grab>       [<Ctrl>Plus]\n"
+		"\t    --grab-zoom-in <grab>       [<Ctrl>plus]\n"
 		"\t                                  Shortcut to increase font size\n"
-		"\t    --grab-zoom-out <grab>      [<Ctrl>Minus]\n"
+		"\t    --grab-zoom-out <grab>      [<Ctrl>minus]\n"
 		"\t                                  Shortcut to decrease font size\n"
 		"\t    --grab-session-next <grab>  [<Ctrl><Logo>Right]\n"
-		"\t                                  Switch to next session\n"
+		"\t                                  Switch to the next session\n"
 		"\t    --grab-session-prev <grab>  [<Ctrl><Logo>Left]\n"
-		"\t                                  Switch to previous session\n"
+		"\t                                  Switch to the previous session\n"
 		"\t    --grab-session-dummy <grab> [<Ctrl><Logo>Escape]\n"
-		"\t                                  Switch to dummy session\n"
+		"\t                                  Switch to a dummy session\n"
 		"\t    --grab-session-close <grab> [<Ctrl><Logo>BackSpace]\n"
 		"\t                                  Close current session\n"
 		"\t    --grab-terminal-new <grab>  [<Ctrl><Logo>Return]\n"
-		"\t                                  Create new terminal session\n"
+		"\t                                  Create a new terminal session\n"
 		"\n"
 		"Video Options:\n"
 		"\t    --drm                   [on]    Use DRM if available\n"
-		"\t    --hwaccel               [off]   Use 3D hardware-acceleration if\n"
+		"\t    --hwaccel               [off]   Use 3D hardware acceleration if\n"
 		"\t                                    available\n"
 		"\t    --gpus={all,aux,primary}[all]   GPU selection mode\n"
 		"\t    --render-engine <eng>   [-]     Console renderer\n"
 		"\t    --render-timing         [off]   Print renderer timing information\n"
+		"\t    --use-original-mode     [on]    Use original KMS video mode\n"
 		"\n"
 		"Font Options:\n"
 		"\t    --font-engine <engine>  [pango]\n"
-		"\t                              Font engine\n"
+		"\t                              Font rendering engine\n"
 		"\t    --font-size <points>    [12]\n"
-		"\t                              Font size in points\n"
+		"\t                              Font size in points (pt)\n"
 		"\t    --font-name <name>      [monospace]\n"
 		"\t                              Font name\n"
 		"\t    --font-dpi <dpi>        [96]\n"
@@ -156,8 +157,8 @@ static void print_help()
 		"Palette Options:\n"
 		"\t    --palette <name>                [default]\n"
 		"\t                                      Select the used color palette.\n"
-		"\t                                      'custom' uses the following color\n"
-		"\t                                      options.\n"
+		"\t                                      specify `custom' to use the \n"
+		"\t                                      following color options\n"
 		"\t    --palette-black <color>         [  0,   0,   0]\n"
 		"\t                                      Black in custom palette\n"
 		"\t    --palette-red <color>           [205,   0,   0]\n"
@@ -560,18 +561,12 @@ static int aftercheck_drm(struct conf_option *opt, int argc, char **argv,
 	struct kmscon_conf_t *conf = KMSCON_CONF_FROM_FIELD(opt->mem, drm);
 
 	/* disable --drm if DRM runtime support is not available */
-	/* TODO: This prevents people from booting without DRM and loading DRM
-	 * drivers during runtime. However, if we remove it, we will be unable
-	 * to automatically fall back to fbdev-mode.
-	 * But with blacklists fbdev-mode is the default so we can run with DRM
-	 * enabled but will still correctly use fbdev devices so we can then
-	 * remove this check. */
-	if (conf->drm) {
-		if (!uterm_video_available(UTERM_VIDEO_DRM3D) &&
-		    !uterm_video_available(UTERM_VIDEO_DRM2D)) {
-			log_info("no DRM runtime support available; disabling --drm");
-			conf->drm = false;
-		}
+	/* drmAvailable() is broken, as it only checks for GPU 0, but with
+	 * with simpledrm, it's often the case that the first gpu ends up being
+	 * GPU 1. So only checks if drm2d or drm3d is available */
+	if (conf->drm && !UTERM_VIDEO_DRM3D && !UTERM_VIDEO_DRM2D) {
+		log_info("no DRM runtime support available; disabling --drm");
+		conf->drm = false;
 	}
 
 	return 0;
@@ -734,6 +729,7 @@ int kmscon_conf_new(struct conf_ctx **out)
 		CONF_OPTION_BOOL(0, "hwaccel", &conf->hwaccel, false),
 		CONF_OPTION(0, 0, "gpus", &conf_gpus, NULL, NULL, NULL, &conf->gpus, KMSCON_GPU_ALL),
 		CONF_OPTION_STRING(0, "render-engine", &conf->render_engine, NULL),
+		CONF_OPTION_BOOL(0, "use-original-mode", &conf->use_original_mode, true),
 
 		/* Font Options */
 		CONF_OPTION_STRING(0, "font-engine", &conf->font_engine, "pango"),

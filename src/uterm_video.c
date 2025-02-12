@@ -62,18 +62,6 @@ const char *uterm_dpms_to_name(int dpms)
 }
 
 SHL_EXPORT
-bool uterm_video_available(const struct uterm_video_module *mod)
-{
-	if (!mod)
-		return false;
-
-	if (mod == UTERM_VIDEO_DRM2D || mod == UTERM_VIDEO_DRM3D)
-		return video_drm_available();
-
-	return true;
-}
-
-SHL_EXPORT
 int mode_new(struct uterm_mode **out, const struct mode_ops *ops)
 {
 	struct uterm_mode *mode;
@@ -380,6 +368,15 @@ struct uterm_mode *uterm_display_get_default(struct uterm_display *disp)
 		return NULL;
 
 	return disp->default_mode;
+}
+
+SHL_EXPORT
+struct uterm_mode *uterm_display_get_original(struct uterm_display *disp)
+{
+	if (!disp)
+		return NULL;
+
+	return disp->original_mode;
 }
 
 SHL_EXPORT

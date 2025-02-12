@@ -156,11 +156,17 @@ static void activate_display(struct kmscon_display *d)
 	if (d->activated || !d->seat->awake || !d->seat->foreground)
 		return;
 
-	/* TODO: We always use the default mode for new displays but we should
-	 * rather allow the user to specify different modes in the configuration
-	 * files. */
+	/* TODO: We use the current KMS mode for new displays to avoid modesetting
+	 * unless the user specifies not to, in which case we use the default mode,
+	 * but we should also allow the user to specify different modes in the
+	 * configuration files. */
 	if (uterm_display_get_state(d->disp) == UTERM_DISPLAY_INACTIVE) {
-		ret = uterm_display_activate(d->disp, NULL);
+		if (seat->conf->use_original_mode)
+			ret = uterm_display_activate(d->disp,
+						     uterm_display_get_original(d->disp));
+		else
+			ret = uterm_display_activate(d->disp, NULL);
+
 		if (ret)
 			return;
 

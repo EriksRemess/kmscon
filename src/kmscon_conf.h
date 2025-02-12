@@ -145,6 +145,8 @@ struct kmscon_conf_t {
 	unsigned int gpus;
 	/* render engine */
 	char *render_engine;
+	/* use current KMS video mode to avoid modesetting */
+	bool use_original_mode;
 
 	/* Font Options */
 	/* font engine */

@@ -585,6 +585,17 @@ int uterm_drm_video_find_crtc(struct uterm_video *video, drmModeRes *res,
 	return -1;
 }
 
+static drmModeCrtc *get_current_crtc(int fd, uint32_t encoder_id)
+{
+	drmModeEncoder *enc = drmModeGetEncoder(fd, encoder_id);
+	if (enc) {
+		int crtc_id = enc->crtc_id;
+		drmModeFreeEncoder(enc);
+		return drmModeGetCrtc(fd, crtc_id);
+	}
+	return NULL;
+}
+
 static void bind_display(struct uterm_video *video, drmModeRes *res,
 			 drmModeConnector *conn)
 {
@@ -592,12 +603,15 @@ static void bind_display(struct uterm_video *video, drmModeRes *res,
 	struct uterm_display *disp;
 	struct uterm_drm_display *ddrm;
 	struct uterm_mode *mode;
+	drmModeCrtc *current_crtc;
 	int ret, i;
 
 	ret = display_new(&disp, vdrm->display_ops);
 	if (ret)
 		return;
 	ddrm = disp->data;
+
+	current_crtc = get_current_crtc(vdrm->fd, conn->encoder_id);
 
 	for (i = 0; i < conn->count_modes; ++i) {
 		ret = mode_new(&mode, &uterm_drm_mode_ops);
@@ -616,8 +630,14 @@ static void bind_display(struct uterm_video *video, drmModeRes *res,
 		if (!disp->default_mode)
 			disp->default_mode = mode;
 
+		/* Save the original KMS mode for later use */
+		if (current_crtc && memcmp(&conn->modes[i], &current_crtc->mode, sizeof(conn->modes[i])) == 0)
+		 	disp->original_mode = mode;
+
 		uterm_mode_unref(mode);
 	}
+	if (current_crtc)
+		drmModeFreeCrtc(current_crtc);
 
 	if (shl_dlist_empty(&disp->modes)) {
 		log_warn("no valid mode for display found");
