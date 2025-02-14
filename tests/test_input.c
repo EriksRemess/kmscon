@@ -36,7 +36,6 @@ static void print_help();
 #include <string.h>
 #include <sys/signalfd.h>
 #include <unistd.h>
-#include <X11/keysym.h>
 #include <xkbcommon/xkbcommon.h>
 #include "eloop.h"
 #include "shl_log.h"
