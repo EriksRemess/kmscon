@@ -501,13 +501,6 @@ static void app_monitor_event(struct uterm_monitor *mon,
 			break;
 		}
 		break;
-	case UTERM_MONITOR_UPDATE_SESSIONS:
-		seat = ev->seat_data;
-		if (!seat)
-			return;
-
-		kmscon_seat_update_sessions(seat->seat);
-		break;
 	}
 }
 
