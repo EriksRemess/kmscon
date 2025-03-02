@@ -42,24 +42,12 @@
 int kmscon_terminal_register(struct kmscon_session **out,
 			     struct kmscon_seat *seat,
 			     unsigned int vtnr);
-int kmscon_terminal_get_child_pid(void *term);
-int kmscon_terminal_set_awake(void *term, bool awake);
 
 #else /* !BUILD_ENABLE_SESSION_TERMINAL */
 
 static inline int kmscon_terminal_register(struct kmscon_session **out,
 					   struct kmscon_seat *seat,
 					   unsigned int vtnr)
-{
-	return -EOPNOTSUPP;
-}
-
-int kmscon_terminal_get_child_pid(void *term)
-{
-	return -EOPNOTSUPP;
-}
-
-int kmscon_terminal_set_awake(void *term, bool awake)
 {
 	return -EOPNOTSUPP;
 }

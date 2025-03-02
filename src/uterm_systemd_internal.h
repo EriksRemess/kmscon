@@ -39,16 +39,15 @@ struct uterm_sd;
 
 #ifdef BUILD_ENABLE_MULTI_SEAT
 
-int uterm_sd_new(struct uterm_sd **out, const char *event_type);
+int uterm_sd_new(struct uterm_sd **out);
 void uterm_sd_free(struct uterm_sd *sd);
 int uterm_sd_get_fd(struct uterm_sd *sd);
 void uterm_sd_flush(struct uterm_sd *sd);
 int uterm_sd_get_seats(struct uterm_sd *sd, char ***seats);
-int uterm_sd_get_session_type(pid_t pid, char **type);
 
 #else
 
-static inline int uterm_sd_new(struct uterm_sd **out, const char *event_type)
+static inline int uterm_sd_new(struct uterm_sd **out)
 {
 	return -EOPNOTSUPP;
 }
@@ -67,11 +66,6 @@ static inline void uterm_sd_flush(struct uterm_sd *sd)
 }
 
 static inline int uterm_sd_get_seats(struct uterm_sd *sd, char ***seats)
-{
-	return -EINVAL;
-}
-
-static inline int uterm_sd_get_session_type(pid_t pid, char **type)
 {
 	return -EINVAL;
 }

@@ -62,7 +62,6 @@ int kmscon_pty_set_vtnr(struct kmscon_pty *pty, unsigned int vtnr);
 void kmscon_pty_set_env_reset(struct kmscon_pty *pty, bool do_reset);
 
 int kmscon_pty_get_fd(struct kmscon_pty *pty);
-int kmscon_pty_get_child(struct kmscon_pty *pty);
 void kmscon_pty_dispatch(struct kmscon_pty *pty);
 
 int kmscon_pty_open(struct kmscon_pty *pty, unsigned short width,
