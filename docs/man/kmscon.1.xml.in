@@ -129,14 +129,15 @@
 
     <variablelist>
       <varlistentry>
-        <term><option>--vt {/path/to/vt}</option></term>
+        <term><option>--vt {/path/to/vt|ttyX|X}</option></term>
         <listitem>
-          <para>Use this VT. If not specified, KMSCON tries to find a VT by
-                itself. On seats without VTs, KMSCON simply activates itself
-                automatically without using any VT. Please note that you cannot
-                use this option if KMSCON runs on multiple seats
-                (see <option>--seats</option>). To avoid this, specify this
-                option in a seat configuration
+          <para>Use this VT. The argument is either the full path `/dev/ttyX', 
+                the device name `ttyX' or just the tty number. If not specified,
+                KMSCON tries to find a VT by itself. On seats without VTs,
+                KMSCON simply activates itself automatically without using any
+                VT. Please note that you cannot use this option if KMSCON runs
+                on multiple seats (see <option>--seats</option>). To avoid this,
+                specify this option in a seat configuration
                 <filename>@CONFIG_DIR@/{seat}.kmscon.conf</filename>.</para>
           <para>You must not run multiple applications on a single VT,
                 otherwise, you might get an unresponsive system. Also note, by
