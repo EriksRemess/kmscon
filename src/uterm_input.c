@@ -265,6 +265,18 @@ int uterm_input_new(struct uterm_input **out,
 	if (ret)
 		goto err_free;
 
+	/* xkbcommon won't use the XKB_DEFAULT_OPTIONS environment
+	 * variable if options is an empty string.
+	 * So if all variables are empty, use NULL instead.
+	 */
+	if (model && *model == 0 && layout && *layout == 0 &&
+	    variant && *variant == 0 && options && *options == 0) {
+		model = NULL;
+		layout = NULL;
+		variant = NULL;
+		options = NULL;
+	}
+
 	ret = uxkb_desc_init(input, model, layout, variant, options, locale,
 			     keymap, compose_file, compose_file_len);
 	if (ret)
