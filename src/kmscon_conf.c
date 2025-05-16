@@ -823,6 +823,15 @@ int kmscon_conf_load_main(struct conf_ctx *ctx, int argc, char **argv)
 	if (conf->exit)
 		return 0;
 
+	/* Both use-original mode and desired-width/desired-height specify that
+	 * kmscon should use a specific mode. If both are in effect then the correct
+	 * mode is ambiguous. Error out and tell the user.
+	 */
+	if (conf->use_original_mode && (conf->desired_width != 0 || conf->desired_height !=0)) {
+		fprintf(stderr, "Cannot use desired-width or desired-height if use-original-mode is enabled. Try --no-use-original-mode.\n");
+		return -EINVAL;
+	}
+
 	if (!conf->debug && !conf->verbose && conf->silent)
 		log_set_config(&LOG_CONFIG_WARNING(0, 0, 0, 0));
 	else
