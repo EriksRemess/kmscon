@@ -41,7 +41,6 @@
 #include "shl_dlist.h"
 #include "shl_log.h"
 #include "uterm_input.h"
-#include "uterm_systemd_internal.h"
 #include "uterm_video.h"
 #include "uterm_vt.h"
 
@@ -55,7 +54,6 @@ struct kmscon_session {
 	bool enabled;
 	bool foreground;
 	bool deactivating;
-	bool tty_type;
 
 	struct ev_timer *timer;
 
@@ -1027,7 +1025,6 @@ int kmscon_seat_register_session(struct kmscon_seat *seat,
 	sess->cb = cb;
 	sess->data = data;
 	sess->foreground = true;
-	sess->tty_type = true;
 
 	/* register new sessions next to the current one */
 	if (seat->current_sess)
@@ -1044,50 +1041,6 @@ int kmscon_seat_register_session(struct kmscon_seat *seat,
 	}
 
 	return 0;
-}
-
-void kmscon_session_update_type(struct kmscon_session *sess)
-{
-	int ret, child;
-	char *type;
-
-	child = kmscon_terminal_get_child_pid(sess->data);
-	if (child < 0) {
-		return;
-	}
-
-	ret = uterm_sd_get_session_type(child, &type);
-	if (ret)
-		return;
-
-	if (!strcmp(type, "tty") && !sess->tty_type) {
-		log_debug("Active session's terminal set to foreground");
-
-		sess->tty_type = true;
-		kmscon_terminal_set_awake(sess->data, true);
-	} else if (strcmp(type, "tty") && sess->tty_type) {
-		log_debug("Active session's terminal set to background");
-
-		sess->tty_type = false;
-		kmscon_terminal_set_awake(sess->data, false);
-	}
-
-	free(type);
-}
-
-void kmscon_seat_update_sessions(struct kmscon_seat *seat)
-{
-	struct shl_dlist *iter, *tmp;
-	struct kmscon_session *session;
-
-	shl_dlist_for_each_safe(iter, tmp, &seat->sessions) {
-		session = shl_dlist_entry(iter, struct kmscon_session,
-						list);
-		if (session == seat->dummy_sess)
-			continue;
-
-		kmscon_session_update_type(session);
-	}
 }
 
 void kmscon_session_ref(struct kmscon_session *sess)
@@ -1201,6 +1154,11 @@ int kmscon_session_set_background(struct kmscon_session *sess)
 
 	sess->foreground = false;
 	return 0;
+}
+
+bool kmscon_session_get_foreground(struct kmscon_session *sess)
+{
+	return sess->foreground;
 }
 
 void kmscon_session_schedule(struct kmscon_session *sess)

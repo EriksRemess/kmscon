@@ -65,19 +65,14 @@ struct uterm_monitor_seat {
 	struct shl_dlist devices;
 };
 
-struct uterm_sd_mon {
-	struct uterm_sd *sd;
-	struct ev_fd *fd;
-};
-
 struct uterm_monitor {
 	unsigned long ref;
 	struct ev_eloop *eloop;
 	uterm_monitor_cb cb;
 	void *data;
 
-	struct uterm_sd_mon seat;
-	struct uterm_sd_mon session;
+	struct uterm_sd *sd;
+	struct ev_fd *sd_mon_fd;
 
 	struct udev *udev;
 	struct udev_monitor *umon;
@@ -88,7 +83,6 @@ struct uterm_monitor {
 
 static void monitor_new_seat(struct uterm_monitor *mon, const char *name);
 static void monitor_free_seat(struct uterm_monitor_seat *seat);
-static void monitor_update_sessions(struct uterm_monitor *mon);
 
 static void monitor_refresh_seats(struct uterm_monitor *mon)
 {
@@ -98,13 +92,13 @@ static void monitor_refresh_seats(struct uterm_monitor *mon)
 	struct uterm_monitor_seat *seat;
 
 	/* Use only seat0 if multi-seat support is not available */
-	if (!mon->seat.sd) {
+	if (!mon->sd) {
 		if (shl_dlist_empty(&mon->seats))
 			monitor_new_seat(mon, "seat0");
 		return;
 	}
 
-	num = uterm_sd_get_seats(mon->seat.sd, &seats);
+	num = uterm_sd_get_seats(mon->sd, &seats);
 	if (num < 0) {
 		log_warn("cannot read seat information from systemd: %d", num);
 		return;
@@ -138,88 +132,65 @@ static void monitor_refresh_seats(struct uterm_monitor *mon)
 	free(seats);
 }
 
-static int handle_sd_event(struct uterm_monitor *mon, struct uterm_sd_mon sd_mon, int mask)
-{
-	if (mask & (EV_HUP | EV_ERR)) {
-		log_warn("systemd login monitor closed unexpectedly");
-		return EV_ERR;
-	}
-
-	if (sd_mon.sd) {
-		uterm_sd_flush(sd_mon.sd);
-		ev_eloop_flush_fd(mon->eloop, sd_mon.fd);
-	}
-	
-	return 0;
-}
-
-static void monitor_sd_seat_event(struct ev_fd *fd,
+static void monitor_sd_event(struct ev_fd *fd,
 			     int mask,
 			     void *data)
 {
 	struct uterm_monitor *mon = data;
 
-	int ret = handle_sd_event(mon, mon->seat, mask);
-	if (ret)
+	if (mask & (EV_HUP | EV_ERR)) {
+		log_warn("systemd login monitor closed unexpectedly");
 		return;
-	
+	}
+
+	if (mon->sd) {
+		uterm_sd_flush(mon->sd);
+		ev_eloop_flush_fd(mon->eloop, mon->sd_mon_fd);
+	}
 	monitor_refresh_seats(mon);
 }
 
-static void monitor_sd_session_event(struct ev_fd *fd,
-			     int mask,
-			     void *data)
+static void monitor_sd_poll(struct uterm_monitor *mon)
 {
-	struct uterm_monitor *mon = data;
-
-	int ret = handle_sd_event(mon, mon->session, mask);
-	if (ret)
-		return;
-
-	monitor_update_sessions(mon);
+	monitor_sd_event(mon->sd_mon_fd, EV_READABLE, mon);
 }
 
-static void monitor_sd_seat_poll(struct uterm_monitor *mon)
-{
-	monitor_sd_seat_event(mon->seat.fd, EV_READABLE, mon);
-}
-
-static int monitor_sd_init(struct uterm_monitor *mon, struct uterm_sd_mon sd_mon, char *event_type, ev_fd_cb cb)
+static int monitor_sd_init(struct uterm_monitor *mon)
 {
 	int ret, sfd;
-	
-	ret = uterm_sd_new(&sd_mon.sd, event_type);
+
+	ret = uterm_sd_new(&mon->sd);
 	if (ret == -EOPNOTSUPP)
 		return 0;
 	else if (ret)
 		return ret;
 
-	sfd = uterm_sd_get_fd(sd_mon.sd);
+	sfd = uterm_sd_get_fd(mon->sd);
 	if (sfd < 0) {
 		log_err("cannot get systemd login monitor fd");
 		ret = -EFAULT;
 		goto err_sd;
 	}
 
-	ret = ev_eloop_new_fd(mon->eloop, &sd_mon.fd, sfd, EV_READABLE,
-			      cb, mon);
+	ret = ev_eloop_new_fd(mon->eloop, &mon->sd_mon_fd, sfd, EV_READABLE,
+			      monitor_sd_event, mon);
 	if (ret)
 		goto err_sd;
 
 	return 0;
 
 err_sd:
-	uterm_sd_free(sd_mon.sd);
+	uterm_sd_free(mon->sd);
 	return ret;
 }
 
-static void monitor_sd_deinit(struct uterm_sd_mon sd_mon)
+static void monitor_sd_deinit(struct uterm_monitor *mon)
 {
-	if (!sd_mon.sd)
+	if (!mon->sd)
 		return;
 
-	ev_eloop_rm_fd(sd_mon.fd);
-	uterm_sd_free(sd_mon.sd);
+	ev_eloop_rm_fd(mon->sd_mon_fd);
+	uterm_sd_free(mon->sd);
 }
 
 static void seat_new_dev(struct uterm_monitor_seat *seat,
@@ -285,26 +256,6 @@ static void seat_free_dev(struct uterm_monitor_dev *dev)
 
 	free(dev->node);
 	free(dev);
-}
-
-static void monitor_update_sessions(struct uterm_monitor *mon)
-{
-	struct shl_dlist *iter, *tmp;
-	struct uterm_monitor_seat * seat;
-
-	shl_dlist_for_each_safe(iter, tmp, &mon->seats) {
-		seat = shl_dlist_entry(iter, struct uterm_monitor_seat,
-						list);
-
-		struct uterm_monitor_event ev;
-
-		memset(&ev, 0, sizeof(ev));
-
-		ev.type = UTERM_MONITOR_UPDATE_SESSIONS;
-		ev.seat_data = seat->data;
-
-		seat->mon->cb(seat->mon, &ev, seat->mon->data);
-	}
 }
 
 static struct uterm_monitor_dev *monitor_find_dev(struct uterm_monitor *mon,
@@ -640,7 +591,7 @@ static void monitor_udev_add(struct uterm_monitor *mon,
 	}
 
 	if (!strcmp(subs, "drm")) {
-		if (mon->seat.sd && udev_device_has_tag(dev, "seat") != 1) {
+		if (mon->sd && udev_device_has_tag(dev, "seat") != 1) {
 			log_debug("adding non-seat'ed device %s", name);
 			return;
 		}
@@ -653,7 +604,7 @@ static void monitor_udev_add(struct uterm_monitor *mon,
 		type = UTERM_MONITOR_DRM;
 		flags = get_drm_flags(mon, dev, node);
 	} else if (!strcmp(subs, "graphics")) {
-		if (mon->seat.sd && udev_device_has_tag(dev, "seat") != 1) {
+		if (mon->sd && udev_device_has_tag(dev, "seat") != 1) {
 			log_debug("adding non-seat'ed device %s", name);
 			return;
 		}
@@ -677,7 +628,7 @@ static void monitor_udev_add(struct uterm_monitor *mon,
 			log_debug("adding device without parent %s", name);
 			return;
 		}
-		if (mon->seat.sd && udev_device_has_tag(p, "seat") != 1) {
+		if (mon->sd && udev_device_has_tag(p, "seat") != 1) {
 			log_debug("adding non-seat'ed device %s", name);
 			return;
 		}
@@ -781,12 +732,12 @@ static void monitor_udev_event(struct ev_fd *fd,
 	/*
 	 * If there is a pending sd_event in the current epoll-queue and our
 	 * udev event is called first, we must make sure to first execute the
-	 * sd_seat_event. Otherwise, our udev event might introduce new seats that
+	 * sd_event. Otherwise, our udev event might introduce new seats that
 	 * will be initialized later and we loose devices.
 	 * monitor_sd_event() flushes the sd-fd so we will never refresh seat
 	 * values twice in a single epoll-loop.
 	 */
-	monitor_sd_seat_poll(mon);
+	monitor_sd_poll(mon);
 
 	while (true) {
 		/* we use non-blocking udev monitor so ignore errors */
@@ -830,18 +781,15 @@ int uterm_monitor_new(struct uterm_monitor **out,
 	mon->data = data;
 	shl_dlist_init(&mon->seats);
 
-	ret = monitor_sd_init(mon, mon->seat, "seat", monitor_sd_seat_event);
+	ret = monitor_sd_init(mon);
 	if (ret)
 		goto err_free;
-	ret = monitor_sd_init(mon, mon->session, "session", monitor_sd_session_event);
-	if (ret)
-		goto err_sd_seat;
 
 	mon->udev = udev_new();
 	if (!mon->udev) {
 		log_err("cannot create udev object");
 		ret = -EFAULT;
-		goto err_sd_session;
+		goto err_sd;
 	}
 
 	mon->umon = udev_monitor_new_from_netlink(mon->udev, "udev");
@@ -921,10 +869,8 @@ err_umon:
 	udev_monitor_unref(mon->umon);
 err_udev:
 	udev_unref(mon->udev);
-err_sd_session:
-	monitor_sd_deinit(mon->session);
-err_sd_seat:
-	monitor_sd_deinit(mon->seat);
+err_sd:
+	monitor_sd_deinit(mon);
 err_free:
 	free(mon);
 	return ret;
@@ -957,8 +903,7 @@ void uterm_monitor_unref(struct uterm_monitor *mon)
 	ev_eloop_rm_fd(mon->umon_fd);
 	udev_monitor_unref(mon->umon);
 	udev_unref(mon->udev);
-	monitor_sd_deinit(mon->seat);
-	monitor_sd_deinit(mon->session);
+	monitor_sd_deinit(mon);
 	ev_eloop_unref(mon->eloop);
 	free(mon);
 }
