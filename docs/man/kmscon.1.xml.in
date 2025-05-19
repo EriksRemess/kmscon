@@ -501,24 +501,22 @@
         <listitem>
           <para>Use original KMS mode to prevent modesetting. (default: on)</para>
 
-          <para>This option is incompatible with --desired-width and
-                --desired-height.</para>
+          <para>This option is incompatible with --mode.</para>
         </listitem>
       </varlistentry>
 
       <varlistentry>
-        <term><option>--desired-width {pixels}</option></term>
-        <term><option>--desired-height {pixels}</option></term>
+        <term><option>--mode {width}x{height}</option></term>
         <listitem>
-          <para>Set the desired width and height of the output. The given width
+          <para>Set the desired output mode. The given width
           and height must match a supported more exactly for this option to have
           any effect; if there is no supported mode that matches exactly, or if there is
           an error when using the desired mode, then the default mode (first valid mode
           found) will be used.</para>
 
-          <para>--use-original-mode must be disabled in order to use these options.</para>
+          <para>--use-original-mode must be disabled in order to use this option.</para>
 
-          <para>Modesetting is only supported in DRM mode, so these options do
+          <para>Modesetting is only supported in DRM mode, so this option does
           nothing with fbdev. However, fbset can still be used to externally set
           the mode when fbdev is in use.</para>
 

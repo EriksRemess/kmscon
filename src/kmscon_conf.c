@@ -143,13 +143,12 @@ static void print_help()
 		"\t    --render-engine <eng>     [-]     Console renderer\n"
 		"\t    --render-timing           [off]   Print renderer timing information\n"
 		"\t    --use-original-mode     [on]    Use original KMS video mode\n"
-		"\t    --desired-width <pixels>  [0]\n"
-		"\t    --desired-height <pixels> [0]     Set the desired width/height of\n"
-		"\t                                      the output. If the desired mode\n"
-		"\t                                      is not available or encounters an\n"
-		"\t                                      error, a default mode will be\n"
-		"\t                                      used. See the man page for\n"
-		"\t                                      additional details.\n"
+		"\t    --mode <width>x<height>   [0x0]  Set the desired mode for the\n"
+		"\t                                     output. If the specified mode is\n"
+		"\t                                     not available or encounterns an\n"
+		"\t                                     error, a default mode will be used.\n"
+		"\t                                     This option is incompatible with\n"
+		"\t                                     --use-original-mode.\n"
 		"\n"
 		"Font Options:\n"
 		"\t    --font-engine <engine>  [pango]\n"
@@ -737,8 +736,7 @@ int kmscon_conf_new(struct conf_ctx **out)
 		CONF_OPTION(0, 0, "gpus", &conf_gpus, NULL, NULL, NULL, &conf->gpus, KMSCON_GPU_ALL),
 		CONF_OPTION_STRING(0, "render-engine", &conf->render_engine, NULL),
 		CONF_OPTION_BOOL(0, "use-original-mode", &conf->use_original_mode, true),
-		CONF_OPTION_UINT(0, "desired-width", &conf->desired_width, 0),
-		CONF_OPTION_UINT(0, "desired-height", &conf->desired_height, 0),
+		CONF_OPTION_STRING(0, "mode", &conf->mode, NULL),
 
 		/* Font Options */
 		CONF_OPTION_STRING(0, "font-engine", &conf->font_engine, "pango"),
@@ -812,8 +810,8 @@ int kmscon_conf_load_main(struct conf_ctx *ctx, int argc, char **argv)
 	 * kmscon should use a specific mode. If both are in effect then the correct
 	 * mode is ambiguous. Error out and tell the user.
 	 */
-	if (conf->use_original_mode && (conf->desired_width != 0 || conf->desired_height !=0)) {
-		fprintf(stderr, "Cannot use desired-width or desired-height if use-original-mode is enabled. Try --no-use-original-mode.\n");
+	if (conf->use_original_mode && conf->mode != NULL) {
+		fprintf(stderr, "Cannot use --mode if --use-original-mode is enabled. Try --no-use-original-mode.\n");
 		return -EINVAL;
 	}
 
