@@ -367,13 +367,24 @@ static int app_seat_add_video(struct app_seat *seat,
 		mode = UTERM_VIDEO_FBDEV;
 	}
 
-	ret = uterm_video_new(&vid->video, seat->app->eloop, node, mode);
+	unsigned int desired_width = 0;
+	unsigned int desired_height = 0;
+	if (seat->conf->mode != NULL) {
+		int items_parsed = sscanf(seat->conf->mode, "%ux%u", &desired_width, &desired_height);
+		if (items_parsed != 2) {
+			log_warning("The argument to --mode is not in the format <width>x<height>. Ignoring");
+			desired_width = 0;
+			desired_height = 0;
+		}
+	}
+	ret = uterm_video_new(&vid->video, seat->app->eloop, node, mode,
+	                      desired_width, desired_height);
 	if (ret) {
 		if (mode == UTERM_VIDEO_DRM3D) {
 			log_info("cannot create drm3d device %s on seat %s (%d); trying drm2d mode",
 				 vid->node, seat->name, ret);
 			ret = uterm_video_new(&vid->video, seat->app->eloop,
-					      node, UTERM_VIDEO_DRM2D);
+					      node, UTERM_VIDEO_DRM2D, desired_width, desired_height);
 			if (ret)
 				goto err_node;
 		} else {
