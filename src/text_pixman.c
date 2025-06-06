@@ -113,7 +113,6 @@ static int alloc_indirect(struct kmscon_text *txt,
 {
 	struct tp_pixman *tp = txt->data;
 	unsigned int s, i, format;
-	int ret;
 
 	log_info("using blitting engine");
 
@@ -124,7 +123,6 @@ static int alloc_indirect(struct kmscon_text *txt,
 	tp->data[1] = malloc(s * h);
 	if (!tp->data[0] || !tp->data[1]) {
 		log_error("cannot allocate memory for render-buffer");
-		ret = -ENOMEM;
 		goto err_free;
 	}
 
@@ -157,7 +155,7 @@ err_free:
 	free(tp->data[0]);
 	tp->data[1] = NULL;
 	tp->data[0] = NULL;
-	return ret;
+	return -ENOMEM;
 }
 
 static int tp_set(struct kmscon_text *txt)
