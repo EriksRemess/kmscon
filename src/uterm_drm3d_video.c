@@ -415,7 +415,7 @@ static int video_init(struct uterm_video *video, const char *node)
 	};
 	const char *ext;
 	int ret;
-	EGLint major, minor, n;
+	EGLint major, minor, n = 0;
 	EGLenum api;
 	EGLBoolean b;
 	struct uterm_drm_video *vdrm;
