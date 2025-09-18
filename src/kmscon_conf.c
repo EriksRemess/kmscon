@@ -133,7 +133,6 @@ static void print_help()
 		"\t    --grab-session-close <grab> [<Ctrl><Logo>BackSpace]\n"
 		"\t                                  Close current session\n"
 		"\t    --grab-terminal-new <grab>  [<Ctrl><Logo>Return]\n"
-<<<<<<< HEAD
 		"\t                                  Create new terminal session\n"
 		"\t    --grab-rotate-cw <grab>     [<Logo>Plus]\n"
 		"\t                                  Rotate output clock-wise\n"
